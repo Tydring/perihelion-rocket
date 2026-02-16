@@ -16,3 +16,4 @@ export const TIME_SLOTS = [
 export const CLASS_DURATION_OPTIONS = [30, 45, 60, 90];
 
 export const GYM_NAME = "Lagunita Health Club";
+export const GYM_PHONE = "584141234567"; // TODO: Update with real number

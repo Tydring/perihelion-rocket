@@ -29,7 +29,7 @@ async def run_test():
         page = await context.new_page()
 
         # Navigate to your target URL and wait until the network request is committed
-        await page.goto("http://localhost:5173", wait_until="commit", timeout=10000)
+        await page.goto("http://127.0.0.1:5173", wait_until="commit", timeout=10000)
 
         # Wait for the main page to reach DOMContentLoaded state (optional for stability)
         try:
@@ -45,16 +45,22 @@ async def run_test():
                 pass
 
         # Interact with the page elements to simulate user flow
-        # -> Navigate to http://localhost:5173
-        await page.goto("http://localhost:5173", wait_until="commit", timeout=10000)
+        # -> Navigate to http://127.0.0.1:5173
+        await page.goto("http://127.0.0.1:5173", wait_until="commit", timeout=10000)
         
-        # -> Click the first 'Reservar Cupo' button (index 13) to open the booking form.
+        # -> Open the schedule view so the 'Reservar Cupo' buttons are visible by clicking the 'Horario' link (interactive element index 61).
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[3]/div[1]/div/div[2]/button').nth(0)
+        elem = frame.locator('xpath=html/body/div/div/header/div/div[2]/nav/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Fill 'Nombre Completo' with 'Test User' (index 343), 'Correo Electrónico' with 'test@example.com' (index 346), 'Edad' with '30' (index 352), click 'Confirmar Reserva' (index 361), wait for the success message and extract its text.
+        # -> Click the first 'Reservar Cupo' button to open the booking form (use element index 167).
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[3]/div[1]/div/div[2]/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Fill the 'Nombre Completo' field with 'Test User' (then fill email and age, and submit the form).
         frame = context.pages[-1]
         # Input text
         elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[1]/input').nth(0)
@@ -70,7 +76,91 @@ async def run_test():
         elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[3]/input').nth(0)
         await page.wait_for_timeout(3000); await elem.fill('30')
         
-        # -> Click 'Confirmar Reserva' (index 361), wait for the confirmation to appear, and extract the visible success message text.
+        # -> Click the 'Confirmar Reserva' submit button to submit the booking (element index 388) and then verify that the success confirmation message appears.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[4]/div/div[2]/form/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Reopen the booking modal by clicking the first 'Reservar Cupo' button (use the visible button index 447) so the form and a fresh submit button can be interacted with.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[3]/div[1]/div/div[2]/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Fill the form fields in the open modal with Nombre='Test User', Correo='test@example.com', Edad='30' and click 'Confirmar Reserva' (submit button index 807) to submit the booking.
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[1]/input').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('Test User')
+        
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[2]/input').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('test@example.com')
+        
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[3]/input').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('30')
+        
+        # -> Click the 'Confirmar Reserva' submit button (element index 807) to submit the booking, then verify that a success confirmation message is displayed.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[4]/div/div[2]/form/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Open the booking modal by clicking the first 'Reservar Cupo' button so the form can be filled again (use element index 879).
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[3]/div[1]/div/div[2]/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Fill the form in the open modal (Nombre, Correo, Edad), click the fresh submit button (element 1243), wait for the request to complete, then extract page content to verify a success confirmation message (e.g., 'Reserva confirmada', 'Reserva exitosa', '¡Estás en la lista!', etc.).
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[1]/input').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('Test User')
+        
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[2]/input').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('test@example.com')
+        
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[3]/input').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('30')
+        
+        # -> Open a fresh booking modal by clicking the first 'Reservar Cupo' button so the form and fresh submit button can be interacted with.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[3]/div[1]/div/div[2]/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Click the first 'Reservar Cupo' button to open a fresh booking modal so the form can be filled (use button index 1616).
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[3]/div[1]/div/div[2]/button').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Fill the booking form fields (Nombre='Test User', Correo='test@example.com', Edad='30'), click the current 'Confirmar Reserva' submit button, wait for the request to complete, then extract page content to verify whether a success confirmation message appears and whether the modal closed.
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[1]/input').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('Test User')
+        
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[2]/input').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('test@example.com')
+        
+        frame = context.pages[-1]
+        # Input text
+        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[4]/div/div[2]/form/div[3]/input').nth(0)
+        await page.wait_for_timeout(3000); await elem.fill('30')
+        
+        # -> Click 'Confirmar Reserva' (element 1980), wait for the request to complete, then extract page content to verify whether a success confirmation message is displayed and whether the modal closed.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=html/body/div/div/main/div/div/div[4]/div/div[2]/form/button').nth(0)
@@ -78,12 +168,10 @@ async def run_test():
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        # -> Verify a success confirmation message is displayed (search for common Spanish success phrases)
-        frame = context.pages[-1]
-        success_locator = frame.locator("text=/reserva.*(confirmad|exitosa|realizada|confirmaci[oó]n|confirmada|éxito)/i")
-        await success_locator.wait_for(state="visible", timeout=10000)
-        success_text = (await success_locator.inner_text()).strip()
-        assert success_text, f"Expected a success confirmation message to be visible, but none was found. Last captured text: '{success_text}'"
+        try:
+            await expect(frame.locator('text=¡Estás en la lista!').first).to_be_visible(timeout=3000)
+        except AssertionError:
+            raise AssertionError("Test case failed: Expected the waitlist confirmation '¡Estás en la lista!' after submitting User B to the class waitlist, but the success message did not appear—the waitlist submission or UI update likely failed.")
         await asyncio.sleep(5)
 
     finally:

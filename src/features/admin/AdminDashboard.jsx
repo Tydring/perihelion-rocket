@@ -112,7 +112,10 @@ export function AdminDashboard() {
                                                 <div className="text-sm font-mono text-primary font-bold w-14">{cls.startTime}</div>
                                                 <div>
                                                     <div className="font-semibold text-sm">{cls.name}</div>
-                                                    <div className="text-xs text-muted-foreground">{cls.instructor} • {cls.durationMinutes}min • {cls.bookedCount}/{cls.capacity} reservas</div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {cls.instructor} • {cls.durationMinutes}min • {cls.bookedCount}/{cls.capacity} reservas
+                                                        {cls.waitlistCount > 0 && <span className="ml-2 text-amber-500 font-medium">• {cls.waitlistCount} en espera</span>}
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">

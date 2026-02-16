@@ -29,7 +29,7 @@ async def run_test():
         page = await context.new_page()
 
         # Navigate to your target URL and wait until the network request is committed
-        await page.goto("http://localhost:5173", wait_until="commit", timeout=10000)
+        await page.goto("http://127.0.0.1:5173", wait_until="commit", timeout=10000)
 
         # Wait for the main page to reach DOMContentLoaded state (optional for stability)
         try:
@@ -45,19 +45,31 @@ async def run_test():
                 pass
 
         # Interact with the page elements to simulate user flow
-        # -> Navigate to http://localhost:5173
-        await page.goto("http://localhost:5173", wait_until="commit", timeout=10000)
+        # -> Navigate to http://127.0.0.1:5173
+        await page.goto("http://127.0.0.1:5173", wait_until="commit", timeout=10000)
         
-        # -> Click the 'Martes' day button (index 102) to load Tuesday's classes and verify the displayed classes update.
+        # -> Click the 'Martes' day button to load Tuesday's classes and then check that the displayed classes update.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=html/body/div/div/main/div/div/div[2]/button[2]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the 'Viernes' day button (index 108) to load Friday's classes and verify the displayed classes update and that the 'Viernes' selector becomes highlighted.
+        # -> Click the 'Martes' day button to load Tuesday's classes and then extract the displayed classes to verify they changed.
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[2]/button[2]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Extract the list of visible class cards now (Martes view), click the 'Viernes' day button (index 688), wait briefly for UI update, then extract the list of visible class cards again to verify they changed. After that, check which day button is active.
         frame = context.pages[-1]
         # Click element
         elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[2]/button[5]').nth(0)
+        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        
+        # -> Extract the currently visible class cards (Martes view).
+        frame = context.pages[-1]
+        # Click element
+        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[2]/button[5]').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
         await asyncio.sleep(5)

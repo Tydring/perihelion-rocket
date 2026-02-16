@@ -29,7 +29,7 @@ async def run_test():
         page = await context.new_page()
 
         # Navigate to your target URL and wait until the network request is committed
-        await page.goto("http://localhost:5173", wait_until="commit", timeout=10000)
+        await page.goto("http://127.0.0.1:5173", wait_until="commit", timeout=10000)
 
         # Wait for the main page to reach DOMContentLoaded state (optional for stability)
         try:
@@ -45,89 +45,64 @@ async def run_test():
                 pass
 
         # Interact with the page elements to simulate user flow
-        # -> Navigate to http://localhost:5173
-        await page.goto("http://localhost:5173", wait_until="commit", timeout=10000)
+        # -> Navigate to http://127.0.0.1:5173
+        await page.goto("http://127.0.0.1:5173", wait_until="commit", timeout=10000)
         
-        # -> Click the 'Lunes' day button to load the schedule so class cards (and Reservar Cupo buttons) appear.
+        # -> Click the 'Horario' link in the header to open the schedule page, then wait for classes to load.
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[2]/button[1]').nth(0)
+        elem = frame.locator('xpath=html/body/div/div/header/div/div[2]/nav/a').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
-        # -> Click the first 'Reservar Cupo' button on the Yoga class card (interactive element index 161).
+        # -> Click the first 'Reservar Cupo' button on the first class card (interactive element index 167) to open the booking modal.
         frame = context.pages[-1]
         # Click element
-        elem = frame.locator('xpath=html/body/div[1]/div/main/div/div/div[3]/div[1]/div/div[2]/button').nth(0)
+        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[3]/div[1]/div/div[2]/button').nth(0)
         await page.wait_for_timeout(3000); await elem.click(timeout=5000)
         
         # --> Assertions to verify final state
         frame = context.pages[-1]
-        # -> Assert the booking modal opened
-        modal = page.locator('[role="dialog"]')
-        await modal.wait_for(state='visible', timeout=5000)
-        assert await modal.is_visible(), "Booking modal did not become visible after clicking 'Reservar Cupo'"
+        # -> Wait for the booking modal (dialog) to appear
+        modal = frame.locator('role=dialog').first
+        await modal.wait_for(state="visible", timeout=5000)
+        assert await modal.is_visible(), "Booking modal did not become visible"
         
-        # -> Verify the modal contains a name input field (try several common selectors/placeholders)
+        # -> Verify a name input exists inside the modal
         name_selectors = [
-            'input[placeholder*="Nombre" i]',
-            'input[aria-label*="Nombre" i]',
-            'input[name*="name" i]',
-            'input[id*="name" i]',
-            'input[type="text"]',
+            'input[name="name"]',
+            'input[name="nombre"]',
+            'input[placeholder*="Nombre"]',
+            'input[aria-label*="Nombre"]',
+            'input[type="text"]'
         ]
-        name_found = False
+        name_locator = None
         for sel in name_selectors:
-            count = await modal.locator(sel).count()
-            if count > 0:
-                for i in range(count):
-                    if await modal.locator(sel).nth(i).is_visible():
-                        name_found = True
-                        break
-            if name_found:
+            loc = modal.locator(sel)
+            if await loc.count() > 0:
+                name_locator = loc.first
                 break
-        assert name_found, "Name input field not found in booking modal"
+        assert name_locator is not None and await name_locator.is_visible(), "Name input not found in booking modal"
         
-        # -> Verify the modal contains an email input field
+        # -> Verify an email input exists inside the modal
         email_selectors = [
             'input[type="email"]',
-            'input[placeholder*="Correo" i]',
-            'input[placeholder*="Email" i]',
-            'input[aria-label*="Correo" i]',
-            'input[name*="email" i]',
-            'input[id*="email" i]',
+            'input[name="email"]',
+            'input[name="correo"]',
+            'input[placeholder*="Email"]',
+            'input[placeholder*="Correo"]',
+            'input[aria-label*="Correo"]'
         ]
-        email_found = False
+        email_locator = None
         for sel in email_selectors:
-            count = await modal.locator(sel).count()
-            if count > 0:
-                for i in range(count):
-                    if await modal.locator(sel).nth(i).is_visible():
-                        email_found = True
-                        break
-            if email_found:
+            loc = modal.locator(sel)
+            if await loc.count() > 0:
+                email_locator = loc.first
                 break
-        assert email_found, "Email input field not found in booking modal"
+        assert email_locator is not None and await email_locator.is_visible(), "Email input not found in booking modal"
         
-        # -> Verify the modal contains a submit button
-        submit_selectors = [
-            'button[type="submit"]',
-            'input[type="submit"]',
-            'button:has-text("Reservar")',
-            'button:has-text("Reservar Cupo")',
-            'button:has-text("Enviar")',
-            'button:has-text("Confirmar")',
-        ]
-        submit_found = False
-        for sel in submit_selectors:
-            count = await modal.locator(sel).count()
-            if count > 0:
-                for i in range(count):
-                    if await modal.locator(sel).nth(i).is_visible():
-                        submit_found = True
-                        break
-            if submit_found:
-                break
-        assert submit_found, "Submit button not found in booking modal"
+        # -> Verify a submit button exists inside the modal
+        submit_candidates = modal.locator('button[type="submit"], button:has-text("Reservar"), button:has-text("Enviar"), button:has-text("Unirse")')
+        assert await submit_candidates.count() > 0 and await submit_candidates.first.is_visible(), "Submit button not found in booking modal"
         await asyncio.sleep(5)
 
     finally:

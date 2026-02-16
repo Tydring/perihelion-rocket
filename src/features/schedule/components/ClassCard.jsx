@@ -124,15 +124,14 @@ export function ClassCard({ classItem, onBook }) {
                 {/* Book button */}
                 <button
                     className={cn(
-                        "w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-300",
+                        "w-full py-2.5 rounded-xl text-sm font-bold transition-all duration-300 shadow-lg transform active:scale-95",
                         isFull
-                            ? "bg-secondary/50 text-muted-foreground cursor-not-allowed"
-                            : "btn-gradient text-white cursor-pointer"
+                            ? "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/25"
+                            : "btn-gradient text-white shadow-primary/25"
                     )}
-                    disabled={isFull}
-                    onClick={() => onBook(classItem)}
+                    onClick={() => onBook(classItem, isFull)}
                 >
-                    {isFull ? "Clase Llena" : "Reservar Cupo"}
+                    {isFull ? "Unirse a Lista de Espera" : "Reservar Cupo"}
                 </button>
             </div>
         </div>

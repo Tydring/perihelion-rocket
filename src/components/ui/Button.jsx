@@ -9,6 +9,7 @@ const Button = React.forwardRef(({ className, variant = "default", size = "defau
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        warning: "bg-amber-500 text-white hover:bg-amber-600",
     };
 
     const sizes = {

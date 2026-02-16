@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { GYM_NAME } from "../../lib/constants";
+import { InstallPrompt } from "../pwa/InstallPrompt";
 
 export function Layout({ children }) {
     const location = useLocation();
@@ -40,6 +41,8 @@ export function Layout({ children }) {
             <main key={location.pathname} className="flex-1 page-enter">
                 {children}
             </main>
+
+            <InstallPrompt />
 
             {/* Footer */}
             <footer className="py-6 px-4 border-t border-border/30">

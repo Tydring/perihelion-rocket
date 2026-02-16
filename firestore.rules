@@ -16,6 +16,13 @@ service cloud.firestore {
     match /classes/{classId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();
+      
+      // Waitlist subcollection
+      match /waitlist/{entryId} {
+        allow create: if true;
+        allow read: if true;
+        allow update, delete: if isAdmin();
+      }
     }
 
     // Bookings collection: public create with validation, admin-only read/update/delete

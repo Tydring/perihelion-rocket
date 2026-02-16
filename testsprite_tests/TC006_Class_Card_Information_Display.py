@@ -29,7 +29,7 @@ async def run_test():
         page = await context.new_page()
 
         # Navigate to your target URL and wait until the network request is committed
-        await page.goto("http://localhost:5173", wait_until="commit", timeout=10000)
+        await page.goto("http://127.0.0.1:5173", wait_until="commit", timeout=10000)
 
         # Wait for the main page to reach DOMContentLoaded state (optional for stability)
         try:
@@ -45,14 +45,8 @@ async def run_test():
                 pass
 
         # Interact with the page elements to simulate user flow
-        # -> Navigate to http://localhost:5173
-        await page.goto("http://localhost:5173", wait_until="commit", timeout=10000)
-        
-        # -> Click the 'Lunes' day button to load the schedule and wait for class cards to render, then verify card contents (name, time, instructor, 'Reservar Cupo' button).
-        frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=html/body/div/div/main/div/div/div[2]/button[1]').nth(0)
-        await page.wait_for_timeout(3000); await elem.click(timeout=5000)
+        # -> Navigate to http://127.0.0.1:5173
+        await page.goto("http://127.0.0.1:5173", wait_until="commit", timeout=10000)
         
         await asyncio.sleep(5)
 

@@ -109,5 +109,85 @@ export function useBooking() {
         }
     };
 
-    return { bookClass, loading, error, success, reset: () => { setError(null); setSuccess(false); } };
+    const joinWaitlist = async (classId, userData, wantsReminder = false) => {
+        setLoading(true);
+        setError(null);
+        setSuccess(false);
+
+        try {
+            // Rate limit check still applies for waitlist to prevent spam
+            if (!checkRateLimit()) {
+                throw new Error("Has alcanzado el límite de solicitudes por hoy.");
+            }
+
+            // Request FCM token
+            let fcmToken = null;
+            if (wantsReminder && VAPID_KEY) {
+                try {
+                    fcmToken = await requestFcmToken(VAPID_KEY);
+                } catch (tokenErr) {
+                    console.warn("Could not get FCM token:", tokenErr);
+                }
+            }
+
+            await runTransaction(db, async (transaction) => {
+                const classRef = doc(db, "classes", classId);
+                const classSnap = await transaction.get(classRef);
+
+                if (!classSnap.exists()) {
+                    throw new Error("La clase no existe.");
+                }
+
+                // Check if already in waitlist
+                // Note: Ideally we query the subcollection, but in client-side transaction we can't easily query.
+                // For MVP, we'll just add them. The unique ID (email based) prevents dupes if we use set().
+
+                const waitlistId = `${userData.email.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                const waitlistRef = doc(db, "classes", classId, "waitlist", waitlistId);
+                const waitlistSnap = await transaction.get(waitlistRef);
+
+                if (waitlistSnap.exists()) {
+                    throw new Error("Ya estás en la lista de espera para esta clase.");
+                }
+
+                // Also check if they are already BOOKED
+                const bookingId = `${classId}_${userData.email.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                const bookingRef = doc(db, "bookings", bookingId);
+                const bookingSnap = await transaction.get(bookingRef);
+
+                if (bookingSnap.exists()) {
+                    throw new Error("¡Ya tienes una reserva confirmada para esta clase!");
+                }
+
+                const entryData = {
+                    userName: userData.name,
+                    userEmail: userData.email,
+                    userAge: userData.age,
+                    createdAt: new Date(),
+                    status: "waiting"
+                };
+
+                if (fcmToken) {
+                    entryData.fcmToken = fcmToken;
+                }
+
+                transaction.set(waitlistRef, entryData);
+
+                // Update class waitlist count
+                transaction.update(classRef, {
+                    waitlistCount: increment(1)
+                });
+            });
+
+            incrementRateLimit();
+            setSuccess(true);
+        } catch (err) {
+            console.error("Waitlist join failed: ", err);
+            setError(err.message || "Error al unirse a la lista de espera");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { bookClass, joinWaitlist, loading, error, success, reset: () => { setError(null); setSuccess(false); } };
 }

@@ -3,6 +3,7 @@ import { useBooking } from "../../booking/hooks/useBooking";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
 import { X, CheckCircle, AlertCircle, Bell, Shield } from "lucide-react";
+import { GYM_PHONE } from "../../../lib/constants";
 
 // Only letters, spaces, accented chars, hyphens, apostrophes
 const NAME_REGEX = /^[a-zA-ZÀ-ÿñÑ\s'-]{2,100}$/;
@@ -27,7 +28,7 @@ function validateForm(data) {
 }
 
 export function BookingModal({ classItem, onClose, onBookingSuccess }) {
-    const { bookClass, loading, error, success } = useBooking();
+    const { bookClass, joinWaitlist, loading, error, success } = useBooking();
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -36,6 +37,8 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
     });
     const [wantsReminder, setWantsReminder] = useState(false);
     const [validationError, setValidationError] = useState(null);
+
+    const isWaitlistMode = classItem.bookedCount >= classItem.capacity;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -52,12 +55,18 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
             return;
         }
 
-        await bookClass(classItem.id, {
+        const userData = {
             name: formData.name.trim(),
             email: formData.email.trim().toLowerCase(),
             age: Number(formData.age),
             healthConditions: stripHtml(formData.healthConditions)
-        }, wantsReminder);
+        };
+
+        if (isWaitlistMode) {
+            await joinWaitlist(classItem.id, userData, wantsReminder);
+        } else {
+            await bookClass(classItem.id, userData, wantsReminder);
+        }
     };
 
     const displayError = validationError || error;
@@ -66,7 +75,10 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
             <div className="w-full max-w-md glass-strong rounded-2xl shadow-2xl shadow-black/40 animate-scale-in relative overflow-hidden">
                 {/* Top accent */}
-                <div className="h-1 bg-gradient-to-r from-primary via-cyan-400 to-primary" />
+                <div className={cn(
+                    "h-1 bg-gradient-to-r",
+                    isWaitlistMode ? "from-amber-400 via-orange-500 to-amber-400" : "from-primary via-cyan-400 to-primary"
+                )} />
 
                 {/* Close button */}
                 <button
@@ -79,29 +91,56 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
                 {success ? (
                     /* Success state */
                     <div className="p-8 text-center animate-scale-in">
-                        <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle className="h-8 w-8 text-emerald-400" />
+                        <div className={cn(
+                            "h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4",
+                            isWaitlistMode ? "bg-amber-500/15" : "bg-emerald-500/15"
+                        )}>
+                            <CheckCircle className={cn("h-8 w-8", isWaitlistMode ? "text-amber-500" : "text-emerald-400")} />
                         </div>
-                        <h3 className="text-xl font-bold mb-2">¡Reserva Confirmada!</h3>
+                        <h3 className="text-xl font-bold mb-2">{isWaitlistMode ? "¡Estás en la lista!" : "¡Reserva Confirmada!"}</h3>
                         <p className="text-muted-foreground mb-1">
-                            Has reservado <strong className="text-foreground">{classItem.name}</strong> exitosamente.
+                            {isWaitlistMode
+                                ? <span>Te avisaremos si se libera un cupo para <strong className="text-foreground">{classItem.name}</strong>.</span>
+                                : <span>Has reservado <strong className="text-foreground">{classItem.name}</strong> exitosamente.</span>
+                            }
                         </p>
                         <p className="text-sm text-muted-foreground mb-6">
-                            Te esperamos el {classItem.dayOfWeek} a las {classItem.startTime}
+                            {classItem.dayOfWeek} a las {classItem.startTime}
                         </p>
-                        <button
-                            onClick={() => { onBookingSuccess(); onClose(); }}
-                            className="w-full py-2.5 rounded-xl text-sm font-semibold btn-gradient text-white"
-                        >
-                            ¡Genial!
-                        </button>
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => {
+                                    const msg = isWaitlistMode
+                                        ? `Hola, me uní a la lista de espera para ${classItem.name} el ${classItem.dayOfWeek} a las ${classItem.startTime}. Soy ${formData.name}.`
+                                        : `Hola, acabo de reservar para ${classItem.name} el ${classItem.dayOfWeek} a las ${classItem.startTime}. Soy ${formData.name}.`;
+                                    window.open(`https://wa.me/${GYM_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
+                                }}
+                                className="w-full py-2.5 rounded-xl text-sm font-semibold bg-[#25D366] hover:bg-[#128C7E] text-white shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+                            >
+                                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" /></svg>
+                                Confirmar por WhatsApp
+                            </button>
+
+                            <button
+                                onClick={() => { onBookingSuccess(); onClose(); }}
+                                className="w-full py-2.5 rounded-xl text-sm font-semibold btn-gradient text-white"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     /* Form state */
                     <div className="p-6">
                         <div className="mb-5">
-                            <h3 className="text-xl font-bold">Reservar {classItem.name}</h3>
+                            <h3 className="text-xl font-bold">{isWaitlistMode ? "Unirse a Lista de Espera" : `Reservar ${classItem.name}`}</h3>
                             <p className="text-sm text-muted-foreground mt-1">{classItem.dayOfWeek} • {classItem.startTime}</p>
+                            {isWaitlistMode && (
+                                <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500 text-sm flex gap-2">
+                                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                    <span>La clase está llena. Únete a la lista de espera y te avisaremos si hay cupo.</span>
+                                </div>
+                            )}
                         </div>
 
                         {displayError && (
@@ -152,7 +191,7 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
                                     <Bell className="h-4 w-4 text-muted-foreground" />
-                                    <span>Recibir recordatorio antes de la clase</span>
+                                    <span>{isWaitlistMode ? "Avisarme al correo si hay cupo" : "Recibir recordatorio antes de la clase"}</span>
                                 </div>
                             </label>
 
@@ -161,15 +200,19 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
                                 disabled={loading}
                                 className={cn(
                                     "w-full py-3 rounded-xl text-sm font-semibold transition-all",
-                                    loading ? "bg-secondary text-muted-foreground" : "btn-gradient text-white"
+                                    loading
+                                        ? "bg-secondary text-muted-foreground"
+                                        : isWaitlistMode
+                                            ? "bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/25"
+                                            : "btn-gradient text-white"
                                 )}
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center gap-2">
                                         <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        Reservando...
+                                        {isWaitlistMode ? "Uniendo..." : "Reservando..."}
                                     </span>
-                                ) : "Confirmar Reserva"}
+                                ) : (isWaitlistMode ? "Unirse a Lista de Espera" : "Confirmar Reserva")}
                             </button>
 
                             {/* Privacy disclaimer */}
