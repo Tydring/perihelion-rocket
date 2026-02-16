@@ -14,7 +14,7 @@ const messaging = getMessaging();
  * Callable function to set admin custom claim on a user.
  * Can only be called by an existing admin or if no admins exist yet (bootstrap).
  */
-exports.setAdminClaim = onCall(async (request) => {
+exports.setAdminClaim = onCall({ cors: ["https://lhc-gym.web.app", "https://gym-booking-vzla.web.app"] }, async (request) => {
     const { uid } = request.data;
     if (!uid) throw new HttpsError("invalid-argument", "uid is required");
 
