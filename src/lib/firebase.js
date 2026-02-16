@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getMessaging, getToken, isSupported } from "firebase/messaging";
 
 // Firebase configuration for Gym Booking Venezuela
 const firebaseConfig = {
@@ -13,3 +14,22 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+
+// FCM Messaging - lazily initialized since it requires browser support
+let messagingInstance = null;
+
+export async function getMessagingInstance() {
+    if (messagingInstance) return messagingInstance;
+    const supported = await isSupported();
+    if (!supported) return null;
+    messagingInstance = getMessaging(app);
+    return messagingInstance;
+}
+
+export async function requestFcmToken(vapidKey) {
+    const messaging = await getMessagingInstance();
+    if (!messaging) return null;
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return null;
+    return getToken(messaging, { vapidKey });
+}

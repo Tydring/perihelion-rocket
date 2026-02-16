@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useBooking } from "../../booking/hooks/useBooking";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
-import { X, CheckCircle, AlertCircle } from "lucide-react";
+import { X, CheckCircle, AlertCircle, Bell } from "lucide-react";
 
 export function BookingModal({ classItem, onClose, onBookingSuccess }) {
     const { bookClass, loading, error, success } = useBooking();
@@ -12,6 +12,7 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
         age: "",
         healthConditions: ""
     });
+    const [wantsReminder, setWantsReminder] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -23,7 +24,7 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
         await bookClass(classItem.id, {
             ...formData,
             age: Number(formData.age)
-        });
+        }, wantsReminder);
     };
 
     return (
@@ -101,6 +102,23 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
                                     placeholder="Opcional"
                                 />
                             </div>
+
+                            {/* Reminder toggle */}
+                            <label className="flex items-center gap-3 p-3 rounded-xl bg-background/30 border border-border/50 cursor-pointer select-none">
+                                <div className={cn(
+                                    "relative h-6 w-11 rounded-full transition-colors",
+                                    wantsReminder ? "bg-primary" : "bg-secondary"
+                                )} onClick={() => setWantsReminder(v => !v)}>
+                                    <div className={cn(
+                                        "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform",
+                                        wantsReminder && "translate-x-5"
+                                    )} />
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                    <Bell className="h-4 w-4 text-muted-foreground" />
+                                    <span>Recibir recordatorio antes de la clase</span>
+                                </div>
+                            </label>
 
                             <button
                                 type="submit"
