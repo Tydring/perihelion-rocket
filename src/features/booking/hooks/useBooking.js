@@ -47,10 +47,13 @@ export function useBooking() {
                     throw new Error("You have already booked this class!");
                 }
 
-                // Build booking data
+                // Build booking data with canonical field names
                 const bookingData = {
                     classId,
-                    ...userData,
+                    userName: userData.name,
+                    userEmail: userData.email,
+                    userAge: userData.age,
+                    healthConditions: userData.healthConditions || "",
                     createdAt: new Date(),
                     reminderSent: false
                 };

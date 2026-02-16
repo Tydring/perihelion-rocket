@@ -1,5 +1,7 @@
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
 
@@ -7,6 +9,31 @@ initializeApp();
 
 const db = getFirestore();
 const messaging = getMessaging();
+
+/**
+ * Callable function to set admin custom claim on a user.
+ * Can only be called by an existing admin or if no admins exist yet (bootstrap).
+ */
+exports.setAdminClaim = onCall(async (request) => {
+    const { uid } = request.data;
+    if (!uid) throw new HttpsError("invalid-argument", "uid is required");
+
+    const auth = getAuth();
+    const callerUid = request.auth?.uid;
+
+    if (callerUid) {
+        // Verify caller is already an admin
+        const caller = await auth.getUser(callerUid);
+        if (!caller.customClaims?.admin) {
+            throw new HttpsError("permission-denied", "Only admins can grant admin access");
+        }
+    } else {
+        throw new HttpsError("unauthenticated", "Must be authenticated");
+    }
+
+    await auth.setCustomUserClaims(uid, { admin: true });
+    return { success: true };
+});
 
 const WEEKDAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 

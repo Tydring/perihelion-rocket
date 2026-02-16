@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../../lib/firebase";
 import { useAdminActions } from "./hooks/useAdminActions";
 import { useClasses } from "../schedule/hooks/useClasses";
 import { ClassEditor } from "./components/ClassEditor";
 import { Button } from "../../components/ui/Button";
 import { WEEKDAYS } from "../../lib/constants";
-import { Plus, Pencil, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, LogOut } from "lucide-react";
 
 export function AdminDashboard() {
     const { classes, loading: classesLoading } = useClasses();
@@ -49,13 +51,22 @@ export function AdminDashboard() {
                     <h1 className="text-3xl font-bold tracking-tight">Panel de Administración</h1>
                     <p className="text-muted-foreground text-sm mt-1">{classes.length} clases programadas</p>
                 </div>
-                <button
-                    onClick={() => { setEditingClass(null); setIsEditing(true); }}
-                    className="btn-gradient text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2"
-                >
-                    <Plus className="h-4 w-4" />
-                    Agregar Clase
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => { setEditingClass(null); setIsEditing(true); }}
+                        className="btn-gradient text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Agregar Clase
+                    </button>
+                    <button
+                        onClick={() => signOut(auth)}
+                        className="px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors flex items-center gap-2"
+                    >
+                        <LogOut className="h-4 w-4" />
+                        Salir
+                    </button>
+                </div>
             </div>
 
             {isEditing && (

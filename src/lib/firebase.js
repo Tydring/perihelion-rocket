@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { getMessaging, getToken, isSupported } from "firebase/messaging";
 
 // Firebase configuration for Gym Booking Venezuela
@@ -14,6 +15,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app);
 
 // FCM Messaging - lazily initialized since it requires browser support
 let messagingInstance = null;
