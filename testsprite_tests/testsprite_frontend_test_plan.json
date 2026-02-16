@@ -1,0 +1,104 @@
+[
+    {
+        "id": "TC001",
+        "title": "Schedule Page Loads with Classes",
+        "description": "Verify that the schedule page loads correctly and displays class cards for the default day.",
+        "steps": [
+            "Navigate to the home page at /",
+            "Wait for the page to fully load",
+            "Verify the hero section with logo is visible",
+            "Verify day selector buttons are present (Lunes, Martes, etc.)",
+            "Verify at least one class card is displayed with class name and time"
+        ]
+    },
+    {
+        "id": "TC002",
+        "title": "Day Selector Navigation",
+        "description": "Test that clicking different day buttons updates the displayed classes.",
+        "steps": [
+            "Navigate to the home page at /",
+            "Click on the Martes day button",
+            "Verify the displayed classes change",
+            "Click on the Viernes day button",
+            "Verify the displayed classes change again",
+            "Verify the active day button is visually highlighted"
+        ]
+    },
+    {
+        "id": "TC003",
+        "title": "Booking Modal Opens",
+        "description": "Click the Reservar Cupo button and verify the booking modal opens.",
+        "steps": [
+            "Navigate to the home page at /",
+            "Wait for class cards to load",
+            "Click the first Reservar Cupo button on a class card",
+            "Verify a modal dialog opens",
+            "Verify the modal contains name and email input fields",
+            "Verify the modal contains a submit button"
+        ]
+    },
+    {
+        "id": "TC004",
+        "title": "Booking Form Validation",
+        "description": "Verify the booking form requires name and email fields.",
+        "steps": [
+            "Navigate to the home page at /",
+            "Click the first Reservar Cupo button",
+            "Try to submit the form without filling any fields",
+            "Verify the form shows validation errors or prevents submission",
+            "Fill in only the name field",
+            "Try to submit again and verify email is still required"
+        ]
+    },
+    {
+        "id": "TC005",
+        "title": "Successful Booking Submission",
+        "description": "Submit a valid booking and verify the success message.",
+        "steps": [
+            "Navigate to the home page at /",
+            "Click the first Reservar Cupo button",
+            "Fill in the name field with Test User",
+            "Fill in the email field with test@example.com",
+            "Click the submit button",
+            "Verify a success confirmation message is displayed"
+        ]
+    },
+    {
+        "id": "TC006",
+        "title": "Class Card Information Display",
+        "description": "Verify class cards show all required information.",
+        "steps": [
+            "Navigate to the home page at /",
+            "Wait for class cards to load",
+            "Verify each card shows a class name",
+            "Verify each card shows a time",
+            "Verify each card shows an instructor name",
+            "Verify each card has a Reservar Cupo button"
+        ]
+    },
+    {
+        "id": "TC007",
+        "title": "Admin Dashboard Access",
+        "description": "Verify the admin dashboard loads at /admin route.",
+        "steps": [
+            "Navigate to /admin",
+            "Verify the admin dashboard page loads",
+            "Verify day sections are visible",
+            "Verify class listings appear for at least one day",
+            "Verify an Agregar Clase add button is present"
+        ]
+    },
+    {
+        "id": "TC008",
+        "title": "Hero Section Display",
+        "description": "Verify the hero section displays logo, tagline, and stats.",
+        "steps": [
+            "Navigate to the home page at /",
+            "Verify the Lagunita Health Club logo image is visible",
+            "Verify the tagline text Tu bienestar empieza aqui is displayed",
+            "Verify the stats show 6 Dias",
+            "Verify the stats show 23 Clases",
+            "Verify the stats show 8 Disciplinas"
+        ]
+    }
+]

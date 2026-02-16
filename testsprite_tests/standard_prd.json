@@ -1,0 +1,40 @@
+{
+    "projectName": "Lagunita Health Club - Gym Booking App",
+    "description": "A web application for Lagunita Health Club gym in Venezuela that allows users to view weekly class schedules and book spots in fitness classes. The app is entirely in Spanish.",
+    "features": [
+        {
+            "name": "Class Schedule View",
+            "description": "Users can view gym classes organized by day of the week (Lunes through Sábado). Each day shows available classes with name, time, instructor, and capacity."
+        },
+        {
+            "name": "Class Booking",
+            "description": "Users can book a spot in a class by clicking 'Reservar Cupo', entering their name and email, and submitting the form. A success message confirms the booking."
+        },
+        {
+            "name": "Hero Section",
+            "description": "The schedule page features a hero section with the gym logo, tagline 'Tu bienestar empieza aquí', and stats showing 6 Días, 23 Clases, and 8 Disciplinas."
+        },
+        {
+            "name": "Admin Dashboard",
+            "description": "An admin interface at /admin for managing classes - adding, editing, and deleting classes for each day of the week."
+        }
+    ],
+    "techStack": {
+        "frontend": "React with Vite",
+        "styling": "Tailwind CSS v4",
+        "backend": "Firebase Firestore",
+        "hosting": "Firebase Hosting"
+    },
+    "pages": [
+        {
+            "path": "/",
+            "name": "Schedule Page",
+            "description": "Main page showing hero section and class schedule with day selector"
+        },
+        {
+            "path": "/admin",
+            "name": "Admin Dashboard",
+            "description": "Hidden admin page for managing gym classes"
+        }
+    ]
+}
