@@ -2,7 +2,29 @@ import React, { useState } from "react";
 import { useBooking } from "../../booking/hooks/useBooking";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
-import { X, CheckCircle, AlertCircle, Bell } from "lucide-react";
+import { X, CheckCircle, AlertCircle, Bell, Shield } from "lucide-react";
+
+// Only letters, spaces, accented chars, hyphens, apostrophes
+const NAME_REGEX = /^[a-zA-ZÀ-ÿñÑ\s'-]{2,100}$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+function stripHtml(str) {
+    return str.replace(/<[^>]*>/g, "").trim();
+}
+
+function validateForm(data) {
+    if (!NAME_REGEX.test(data.name)) {
+        return "El nombre solo puede contener letras y espacios (2-100 caracteres).";
+    }
+    if (!EMAIL_REGEX.test(data.email)) {
+        return "Por favor ingresa un correo electrónico válido.";
+    }
+    const age = Number(data.age);
+    if (!age || age < 10 || age > 119 || !Number.isInteger(age)) {
+        return "La edad debe ser un número entero entre 10 y 119.";
+    }
+    return null;
+}
 
 export function BookingModal({ classItem, onClose, onBookingSuccess }) {
     const { bookClass, loading, error, success } = useBooking();
@@ -13,19 +35,32 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
         healthConditions: ""
     });
     const [wantsReminder, setWantsReminder] = useState(false);
+    const [validationError, setValidationError] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        if (validationError) setValidationError(null);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const vError = validateForm(formData);
+        if (vError) {
+            setValidationError(vError);
+            return;
+        }
+
         await bookClass(classItem.id, {
-            ...formData,
-            age: Number(formData.age)
+            name: formData.name.trim(),
+            email: formData.email.trim().toLowerCase(),
+            age: Number(formData.age),
+            healthConditions: stripHtml(formData.healthConditions)
         }, wantsReminder);
     };
+
+    const displayError = validationError || error;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
@@ -69,17 +104,17 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
                             <p className="text-sm text-muted-foreground mt-1">{classItem.dayOfWeek} • {classItem.startTime}</p>
                         </div>
 
-                        {error && (
+                        {displayError && (
                             <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive mb-4 animate-slide-down">
                                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                                {error}
+                                {displayError}
                             </div>
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-1.5">
                                 <label className="text-sm font-medium">Nombre Completo</label>
-                                <Input name="name" value={formData.name} onChange={handleChange} required className="bg-background/50" />
+                                <Input name="name" value={formData.name} onChange={handleChange} required className="bg-background/50" maxLength={100} />
                             </div>
 
                             <div className="space-y-1.5">
@@ -89,7 +124,7 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
 
                             <div className="space-y-1.5">
                                 <label className="text-sm font-medium">Edad</label>
-                                <Input type="number" name="age" value={formData.age} onChange={handleChange} required min="10" className="bg-background/50" />
+                                <Input type="number" name="age" value={formData.age} onChange={handleChange} required min="10" max="119" className="bg-background/50" />
                             </div>
 
                             <div className="space-y-1.5">
@@ -100,6 +135,7 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
                                     onChange={handleChange}
                                     className="flex min-h-[80px] w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     placeholder="Opcional"
+                                    maxLength={500}
                                 />
                             </div>
 
@@ -135,6 +171,12 @@ export function BookingModal({ classItem, onClose, onBookingSuccess }) {
                                     </span>
                                 ) : "Confirmar Reserva"}
                             </button>
+
+                            {/* Privacy disclaimer */}
+                            <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1.5">
+                                <Shield className="h-3 w-3" />
+                                Tus datos se usan solo para gestionar tu reserva y no se comparten con terceros.
+                            </p>
                         </form>
                     </div>
                 )}

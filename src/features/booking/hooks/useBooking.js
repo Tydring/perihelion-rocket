@@ -3,6 +3,31 @@ import { runTransaction, doc } from "firebase/firestore";
 import { db, requestFcmToken } from "../../../lib/firebase";
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY || "";
+const MAX_BOOKINGS_PER_DAY = 5;
+const RATE_LIMIT_KEY = "lhc_bookings_today";
+
+function checkRateLimit() {
+    try {
+        const stored = JSON.parse(localStorage.getItem(RATE_LIMIT_KEY) || "{}");
+        const today = new Date().toISOString().slice(0, 10);
+        if (stored.date !== today) return true;
+        return (stored.count || 0) < MAX_BOOKINGS_PER_DAY;
+    } catch {
+        return true;
+    }
+}
+
+function incrementRateLimit() {
+    try {
+        const today = new Date().toISOString().slice(0, 10);
+        const stored = JSON.parse(localStorage.getItem(RATE_LIMIT_KEY) || "{}");
+        if (stored.date !== today) {
+            localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify({ date: today, count: 1 }));
+        } else {
+            localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify({ date: today, count: (stored.count || 0) + 1 }));
+        }
+    } catch { /* localStorage unavailable */ }
+}
 
 export function useBooking() {
     const [loading, setLoading] = useState(false);
@@ -15,6 +40,10 @@ export function useBooking() {
         setSuccess(false);
 
         try {
+            if (!checkRateLimit()) {
+                throw new Error("Has alcanzado el límite de reservas por hoy. Intenta mañana.");
+            }
+
             // Request FCM token before the transaction if user wants reminders
             let fcmToken = null;
             if (wantsReminder && VAPID_KEY) {
@@ -70,6 +99,7 @@ export function useBooking() {
                 });
             });
 
+            incrementRateLimit();
             setSuccess(true);
         } catch (err) {
             console.error("Booking failed: ", err);
